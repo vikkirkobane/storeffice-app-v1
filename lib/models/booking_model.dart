@@ -1,6 +1,4 @@
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Booking {
   final String id;
   final String userId;
@@ -20,26 +18,25 @@ class Booking {
     required this.status,
   });
 
-  factory Booking.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
+  factory Booking.fromMap(Map<String, dynamic> map) {
     return Booking(
-      id: doc.id,
-      userId: data['userId'] ?? '',
-      officeSpaceId: data['officeSpaceId'] ?? '',
-      startTime: (data['startTime'] as Timestamp).toDate(),
-      endTime: (data['endTime'] as Timestamp).toDate(),
-      totalPrice: (data['totalPrice'] as num).toDouble(),
-      status: data['status'] ?? 'pending',
+      id: map['id']?.toString() ?? '',
+      userId: map['user_id'] ?? '',
+      officeSpaceId: map['office_space_id'] ?? '',
+      startTime: DateTime.parse(map['start_time'] ?? DateTime.now().toIso8601String()),
+      endTime: DateTime.parse(map['end_time'] ?? DateTime.now().toIso8601String()),
+      totalPrice: (map['total_price'] as num?)?.toDouble() ?? 0.0,
+      status: map['status'] ?? 'pending',
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'userId': userId,
-      'officeSpaceId': officeSpaceId,
-      'startTime': startTime,
-      'endTime': endTime,
-      'totalPrice': totalPrice,
+      'user_id': userId,
+      'office_space_id': officeSpaceId,
+      'start_time': startTime.toIso8601String(),
+      'end_time': endTime.toIso8601String(),
+      'total_price': totalPrice,
       'status': status,
     };
   }

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/office_space_model.dart';
-import '../models/booking_model.dart';
-import '../services/firestore_service.dart';
+import '../services/supabase_service.dart';
 
 class BookingScreen extends StatefulWidget {
   final OfficeSpace officeSpace;
@@ -14,7 +13,7 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  final _firestoreService = FirestoreService();
+  final SupabaseService _supabaseService = SupabaseService();
   DateTime? _selectedDate;
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
@@ -88,7 +87,8 @@ class _BookingScreenState extends State<BookingScreen> {
     final duration = endDateTime.difference(startDateTime);
     final double totalPrice = (duration.inMinutes / 60) * hourlyRate;
 
-    final user = FirebaseAuth.instance.currentUser;
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
     if (user == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,32 +102,27 @@ class _BookingScreenState extends State<BookingScreen> {
     });
 
     try {
-      final booking = Booking(
-        id: '', // Firestore will generate this
-        userId: user.uid,
-        officeSpaceId: widget.officeSpace.id,
-        startTime: startDateTime,
-        endTime: endDateTime,
-        totalPrice: totalPrice,
-        status: 'confirmed',
-      );
+      final booking = {
+        'user_id': user.id,
+        'office_space_id': widget.officeSpace.id,
+        'start_time': startDateTime.toIso8601String(),
+        'end_time': endDateTime.toIso8601String(),
+        'total_price': totalPrice,
+        'status': 'confirmed',
+        'created_at': DateTime.now().toIso8601String(),
+      };
 
-      await _firestoreService.addBooking(booking);
+      await _supabaseService.createBooking(booking);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Booking successful!')),
       );
       Navigator.of(context).pop();
-    } on FirebaseException catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error booking: ${e.message}')),
-      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An unexpected error occurred: $e')),
+        SnackBar(content: Text('Error booking: $e')),
       );
     } finally {
       setState(() {
@@ -140,7 +135,7 @@ class _BookingScreenState extends State<BookingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Book ${widget.officeSpace.title}'), // Corrected: use title instead of name
+        title: Text('Book ${widget.officeSpace.title}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -154,7 +149,7 @@ class _BookingScreenState extends State<BookingScreen> {
               leading: const Icon(Icons.calendar_today),
               title: Text(_selectedDate == null
                   ? 'Select Date'
-                  : 'Date: ${_selectedDate!.toLocal()}'.split(' ')[0]), // Corrected: added closing parenthesis
+                  : 'Date: ${_selectedDate!.toLocal()}'.split(' ')[0]),
               onTap: () => _selectDate(context),
             ),
             // Start Time Picker

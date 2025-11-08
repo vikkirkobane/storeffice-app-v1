@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class CartItem {
   final String productId;
   final String name;
@@ -23,18 +21,9 @@ class CartItem {
     } 
   }
 
-    factory CartItem.fromFirestore(DocumentSnapshot doc) {
-    Map data = doc.data() as Map<String, dynamic>;
-    return CartItem(
-      productId: doc.id,
-      name: data['name'] ?? '',
-      price: (data['price'] as num).toDouble(),
-      quantity: data['quantity'] as int,
-    );
-  }
-
   Map<String, dynamic> toMap() {
     return {
+      'product_id': productId,
       'name': name,
       'price': price,
       'quantity': quantity,

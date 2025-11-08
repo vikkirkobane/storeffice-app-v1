@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'firebase_options.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config.dart';
 import 'login_screen.dart';
 import 'registration_screen.dart';
 import 'screens/add_office_space_screen.dart';
@@ -14,12 +12,13 @@ import 'screens/my_bookings_screen.dart';
 import 'screens/cart_screen.dart';
 import 'providers/cart_provider.dart';
 import 'models/user_model.dart';
-import 'services/firestore_service.dart';
+import 'services/supabase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  await Supabase.initialize(
+    url: Config.supabaseUrl,
+    anonKey: Config.supabaseAnonKey,
   );
   runApp(
     MultiProvider(
@@ -131,27 +130,36 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
 
   @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+      if (event == AuthChangeEvent.signedIn || event == AuthChangeEvent.signedOut) {
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-        if (snapshot.hasData) {
-          return const HomePage();
-        }
-        return const LoginPage();
-      },
-    );
+    final client = Supabase.instance.client;
+    final session = client.auth.currentSession;
+    
+    if (session != null) {
+      return const HomePage();
+    }
+    return const LoginPage();
   }
 }
 
@@ -163,7 +171,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final FirestoreService _firestoreService = FirestoreService();
+  final SupabaseService _supabaseService = SupabaseService();
   AppUser? _currentUser;
   bool _isLoading = true;
 
@@ -174,9 +182,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadCurrentUser() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final client = Supabase.instance.client;
+    final user = client.auth.currentUser;
     if (user != null) {
-      final appUser = await _firestoreService.getUser(user.uid);
+      final appUser = await _supabaseService.getUser(user.id);
       setState(() {
         _currentUser = appUser;
         _isLoading = false;
@@ -218,8 +227,9 @@ class _HomePageState extends State<HomePage> {
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              FirebaseAuth.instance.signOut();
+            onPressed: () async {
+              final client = Supabase.instance.client;
+              await client.auth.signOut();
             },
             tooltip: 'Logout',
           ),

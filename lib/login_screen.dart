@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,7 +11,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
   String? _errorMessage = '';
 
   Future<void> _login() async {
@@ -19,13 +18,18 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _errorMessage = '';
       });
-      await _auth.signInWithEmailAndPassword(
+      final client = Supabase.instance.client;
+      await client.auth.signInWithPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
-    } on FirebaseAuthException catch (e) {
+    } on AuthException catch (e) {
       setState(() {
         _errorMessage = e.message;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
       });
     }
   }

@@ -1,54 +1,121 @@
-# Blueprint: Storeffice Flutter App
+# Storeffice App - Development Blueprint
 
-## Overview
+## Project Overview
+Storeffice is a Flutter application that allows users to book office spaces and purchase products. The project was initially configured with Firebase but has been migrated to use Supabase as the backend.
 
-This document outlines the plan and progress for building the "Storeffice" application, a dual-purpose marketplace for office space booking and product storage/sales.
+## Development Progress
 
-The application has been built using Flutter for the cross-platform (iOS, Android, Web) frontend and Firebase for the backend services (Authentication, Firestore Database, Storage, etc.), as requested.
+### Initial State
+- The project was a Flutter app with Firebase integration
+- Dependencies included firebase_core, firebase_auth, cloud_firestore
+- Multiple screens for office space booking and product purchasing
+- Authentication and data storage handled through Firebase
 
-## Completed Features
+### Actions Taken
 
-### 1. Core & Foundation
-- **Environment & Project Setup**: Configured Firebase and set up the Flutter project with necessary dependencies.
-- **Application Structure**: Implemented theming (light/dark mode with `provider`), an authentication wrapper, and initial screen routing.
+1. **Project Analysis & Setup**
+   - Reviewed project structure and dependencies
+   - Identified all Firebase references across the codebase
+   - Upgraded Flutter and Dart SDK to required versions (Flutter 3.35.7, Dart 3.9.2)
 
-### 2. Role-Based Access Control
-- **User Roles**: Implemented a role-based system with three distinct user groups: `Owner`, `Merchant`, and `Customer`.
-- **Registration**: Updated the registration screen to include a role selection dropdown, storing the user's role in Firestore.
-- **Dynamic UI**: The home page now dynamically displays different UI elements and navigation options based on the logged-in user's role, ensuring a tailored experience for each user group.
+2. **Firebase to Supabase Migration**
+   - Removed Firebase dependencies from pubspec.yaml
+   - Added Supabase dependencies (supabase_flutter: ^2.8.0)
+   - Updated all authentication logic to use Supabase Auth
+   - Replaced Firestore database calls with Supabase database calls
+   - Updated all data models to work with Supabase
+   - Modified all screens to use Supabase services instead of Firebase services
 
-### 3. Authentication System
-- **UI Screens & Functionality**: Created separate, functional screens for Login (`login_screen.dart`) and Registration (`registration_screen.dart`) with email/password authentication using `FirebaseAuth`.
-- **Navigation & Error Handling**: Set up named routes and basic error handling for the authentication flow.
+3. **Codebase Updates**
+   - Updated main.dart to initialize Supabase instead of Firebase
+   - Modified authentication flow to use Supabase AuthState
+   - Updated user management with Supabase Auth
+   - Revised all database operations to use Supabase RLS-protected tables
+   - Created SupabaseService to handle all database operations
+   - Added configuration file for Supabase credentials
 
-### 4. Office Space Management & Booking
-- **Data Models**: Defined the `OfficeSpace` and `Booking` classes.
-- **Firestore Service**: Created a `FirestoreService` with methods to add and retrieve office spaces and bookings. Implemented a Firestore transaction to prevent conflicting bookings.
-- **User Interface (UI)**:
-    - Built a screen to add new office spaces (`add_office_space_screen.dart`), accessible only to `Owner` roles.
-    - Built a screen to display a list of all available spaces (`office_space_list_screen.dart`) with a "Book Now" button, accessible to all roles.
-    - Built a `BookingScreen` to allow users to select dates and times for their reservations.
-    - Built a `MyBookingsScreen` for `Customer` roles to view their booking history.
-- **Navigation**: Integrated all office space and booking screens for a seamless user flow.
+4. **Data Model Refactoring**
+   - Updated User model to work with Supabase auth
+   - Modified Office Space model to use Supabase fields
+   - Updated Product model for Supabase integration
+   - Revised Booking model to work with Supabase tables
+   - Updated Cart model to remove Firebase dependencies
 
-### 5. Marketplace & Shopping Cart
-- **Data Models**: Defined `Product`, `CartItem`, and `Cart` classes.
-- **Firestore Service**: Extended the `FirestoreService` to include functions for adding and retrieving products.
-- **State Management**: Implemented a `CartProvider` using the `provider` package to manage the application's shopping cart state globally.
-- **User Interface (UI)**:
-    - Built a screen to add new products (`add_product_screen.dart`), accessible only to `Merchant` roles.
-    - Built a `ProductListScreen` displaying available products with an "Add to Cart" button for `Customer` roles.
-    - Created a `CartScreen` to display items in the cart, show the total price, and allow users to remove items.
-    - Added a cart icon with a badge to the main app bar for `Customer` roles, showing the number of items in the cart.
-- **Navigation**: Integrated product and cart screens into the main application.
+5. **Screen Updates**
+   - Updated Login screen to use Supabase authentication
+   - Modified Registration screen for Supabase auth
+   - Updated Office Space List screen to fetch from Supabase
+   - Modified Product List screen for Supabase integration
+   - Revised Add Office Space screen for Supabase
+   - Updated Add Product screen to use Supabase
+   - Modified My Bookings screen to retrieve from Supabase
+   - Updated Booking screen for Supabase integration
 
-## Project Complete
+6. **Database Schema Creation**
+   - Created comprehensive schema.sql file
+   - Defined tables for users, office spaces, products, bookings, and carts
+   - Implemented Row Level Security (RLS) policies
+   - Added custom functions for business logic
+   - Created triggers for data validation
+   - Added performance indexes
+   - Set up real-time subscriptions
 
-All core features have been successfully implemented. The Storeffice application now includes:
-- User authentication (Login & Registration).
-- A complete office space booking system.
-- A functional product marketplace with a shopping cart.
-- A user profile section to view past bookings.
-- Role-based access control to tailor the experience for different user groups.
+### Key Changes Made
 
-The application is now feature-complete based on the initial requirements. Future work could include UI refinement, payment gateway integration, and more advanced error handling.
+#### Dependencies
+- Removed: firebase_core, firebase_auth, cloud_firestore
+- Added: supabase_flutter, supabase
+
+#### Authentication
+- Switched from FirebaseAuth to Supabase Auth
+- Updated auth state management
+- Modified login and registration flows
+
+#### Database Operations
+- Replaced Firestore calls with Supabase database operations
+- Updated all data retrieval and storage methods
+- Implemented RLS policies for security
+
+#### Configuration
+- Created configuration file for Supabase credentials
+- Updated initialization logic
+
+### Files Modified
+- pubspec.yaml: Updated dependencies
+- lib/main.dart: Changed initialization and imports
+- lib/login_screen.dart: Updated to use Supabase auth
+- lib/registration_screen.dart: Updated to use Supabase auth
+- lib/screens/*: All screens updated to use Supabase
+- lib/models/*: All models updated for Supabase
+- lib/services/*: Firestore service replaced with Supabase service
+- lib/config.dart: Added for Supabase configuration
+
+### Files Created
+- lib/services/supabase_service.dart: New service for Supabase operations
+- lib/config.dart: Configuration file for Supabase credentials
+- schema.sql: Complete Supabase database schema
+
+### Database Schema Overview
+The schema includes:
+- **profiles** table: User profiles with roles (customer, owner, merchant)
+- **office_spaces** table: Office spaces with location, pricing, and availability
+- **products** table: Products available for purchase
+- **bookings** table: Office space bookings with time ranges
+- **user_carts** table: Temporary storage for shopping cart items
+
+All tables have appropriate RLS policies ensuring users can only access their own data where appropriate, while allowing public read access for office spaces and products.
+
+### Next Steps
+1. Test the application with actual Supabase credentials
+2. Deploy the database schema to a Supabase project
+3. Configure proper authentication providers (email, Google, etc.)
+4. Implement additional features like payment processing
+5. Add more comprehensive error handling
+6. Implement push notifications if needed
+7. Add offline support if required
+
+### Notes
+- The application should be tested with actual Supabase project credentials
+- Ensure CORS settings are properly configured for web deployment
+- Consider implementing Supabase Functions for more complex server-side logic
+- Monitor performance and add additional indexes as needed

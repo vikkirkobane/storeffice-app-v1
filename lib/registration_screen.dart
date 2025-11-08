@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -12,7 +11,6 @@ class RegistrationScreen extends StatefulWidget {
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
   String? _errorMessage = '';
   String _selectedRole = 'Customer'; // Default role
 
@@ -21,26 +19,35 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       setState(() {
         _errorMessage = '';
       });
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      final client = Supabase.instance.client;
+      final response = await client.auth.signUp(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
-      // Save user role to Firestore
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
-        'email': _emailController.text,
-        'role': _selectedRole,
-      });
+      // Check if user was created successfully
+      if (response.user != null) {
+        // Save user role to Supabase
+        await client
+            .from('users')
+            .insert({
+              'id': response.user!.id,
+              'email': _emailController.text,
+              'role': _selectedRole,
+            })
+            .select();
 
-      // Navigate to home page after successful registration
-      if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/home');
-    } on FirebaseAuthException catch (e) {
+        // Navigate to home page after successful registration
+        if (!mounted) return;
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    } on AuthException catch (e) {
       setState(() {
         _errorMessage = e.message;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
       });
     }
   }

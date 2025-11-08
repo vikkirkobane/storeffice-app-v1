@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Product {
   final String id;
   final String sellerId;
@@ -17,25 +15,24 @@ class Product {
     required this.imageUrl,
   });
 
-  factory Product.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
-      id: doc.id,
-      sellerId: data['sellerId'] ?? '',
-      name: data['name'] ?? '',
-      description: data['description'] ?? '',
-      price: (data['price'] ?? 0).toDouble(),
-      imageUrl: data['imageUrl'] ?? '',
+      id: map['id']?.toString() ?? '',
+      sellerId: map['seller_id'] ?? '',
+      name: map['name'] ?? '',
+      description: map['description'] ?? '',
+      price: (map['price'] ?? 0).toDouble(),
+      imageUrl: map['image_url'] ?? '',
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'sellerId': sellerId,
+      'seller_id': sellerId,
       'name': name,
       'description': description,
       'price': price,
-      'imageUrl': imageUrl,
+      'image_url': imageUrl,
     };
   }
 }

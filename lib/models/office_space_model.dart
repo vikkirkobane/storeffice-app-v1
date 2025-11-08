@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class OfficeSpace {
   final String id;
   final String ownerId;
   final String title;
   final String description;
-  final GeoPoint location;
+  final double latitude;
+  final double longitude;
   final List<String> photos;
   final List<String> amenities;
   final int capacity;
@@ -17,7 +16,8 @@ class OfficeSpace {
     required this.ownerId,
     required this.title,
     required this.description,
-    required this.location,
+    required this.latitude,
+    required this.longitude,
     required this.photos,
     required this.amenities,
     required this.capacity,
@@ -25,34 +25,37 @@ class OfficeSpace {
     this.status = 'active',
   });
 
-  // Factory constructor to create an OfficeSpace from a Firestore document
-  factory OfficeSpace.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+  // Factory constructor to create an OfficeSpace from a Supabase row
+  factory OfficeSpace.fromMap(Map<String, dynamic> map) {
     return OfficeSpace(
-      id: doc.id,
-      ownerId: data['ownerId'] ?? '',
-      title: data['title'] ?? '',
-      description: data['description'] ?? '',
-      location: data['location'] ?? const GeoPoint(0, 0),
-      photos: List<String>.from(data['photos'] ?? []),
-      amenities: List<String>.from(data['amenities'] ?? []),
-      capacity: data['capacity'] ?? 0,
-      pricing: Map<String, double>.from(data['pricing'] ?? {}),
-      status: data['status'] ?? 'active',
+      id: map['id']?.toString() ?? '',
+      ownerId: map['owner_id'] ?? '',
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      latitude: map['latitude']?.toDouble() ?? 0.0,
+      longitude: map['longitude']?.toDouble() ?? 0.0,
+      photos: List<String>.from(map['photos'] ?? []),
+      amenities: List<String>.from(map['amenities'] ?? []),
+      capacity: map['capacity']?.toInt() ?? 0,
+      pricing: {
+        'hourly': map['price_per_hour']?.toDouble() ?? 0.0,
+      },
+      status: map['status'] ?? 'active',
     );
   }
 
-  // Method to convert an OfficeSpace object to a map for Firestore
+  // Method to convert an OfficeSpace object to a map for Supabase
   Map<String, dynamic> toMap() {
     return {
-      'ownerId': ownerId,
+      'owner_id': ownerId,
       'title': title,
       'description': description,
-      'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
       'photos': photos,
       'amenities': amenities,
       'capacity': capacity,
-      'pricing': pricing,
+      'price_per_hour': pricing['hourly'],
       'status': status,
     };
   }
