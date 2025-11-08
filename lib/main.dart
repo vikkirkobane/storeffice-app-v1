@@ -1,122 +1,309 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
+import 'login_screen.dart';
+import 'registration_screen.dart';
+import 'screens/add_office_space_screen.dart';
+import 'screens/office_space_list_screen.dart';
+import 'screens/add_product_screen.dart';
+import 'screens/product_list_screen.dart';
+import 'screens/my_bookings_screen.dart';
+import 'screens/cart_screen.dart';
+import 'providers/cart_provider.dart';
+import 'models/user_model.dart';
+import 'services/firestore_service.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => CartProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
+
+class ThemeProvider with ChangeNotifier {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  ThemeMode get themeMode => _themeMode;
+
+  void toggleTheme() {
+    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
+
+  void setSystemTheme() {
+    _themeMode = ThemeMode.system;
+    notifyListeners();
+  }
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    const Color primarySeedColor = Colors.deepPurple;
+
+    final TextTheme appTextTheme = TextTheme(
+      displayLarge: const TextStyle(fontSize: 57, fontWeight: FontWeight.bold),
+      titleLarge: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+      bodyMedium: const TextStyle(fontSize: 14),
     );
-  }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    final ThemeData lightTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primarySeedColor,
+        brightness: Brightness.light,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      textTheme: appTextTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: primarySeedColor,
+        foregroundColor: Colors.white,
+        titleTextStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: primarySeedColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+
+    final ThemeData darkTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primarySeedColor,
+        brightness: Brightness.dark,
+      ),
+      textTheme: appTextTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.grey[900],
+        foregroundColor: Colors.white,
+        titleTextStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.black,
+          backgroundColor: Colors.deepPurple.shade200, // Fixed color
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+      ),
+    );
+
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+            title: 'Storeffice',
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: themeProvider.themeMode,
+            home: const AuthWrapper(),
+            routes: {
+              '/login': (context) => const LoginPage(),
+              '/register': (context) => const RegistrationScreen(),
+              '/home': (context) => const HomePage(),
+              '/add_office_space': (context) => const AddOfficeSpaceScreen(),
+              '/office_space_list': (context) => const OfficeSpaceListScreen(),
+              '/add_product': (context) => const AddProductScreen(),
+              '/product_list': (context) => const ProductListScreen(),
+              '/my_bookings': (context) => const MyBookingsScreen(),
+              '/cart': (context) => const CartScreen(),
+            });
+      },
     );
   }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        if (snapshot.hasData) {
+          return const HomePage();
+        }
+        return const LoginPage();
+      },
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final FirestoreService _firestoreService = FirestoreService();
+  AppUser? _currentUser;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final appUser = await _firestoreService.getUser(user.uid);
+      setState(() {
+        _currentUser = appUser;
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Storeffice - ${_currentUser?.role ?? ''}'),
+        actions: [
+          if (_currentUser?.role == 'Customer')
+            Consumer<CartProvider>(
+              builder: (_, cart, ch) => Badge(
+                label: Text(cart.itemCount.toString()),
+                child: ch,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.shopping_cart),
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/cart');
+                },
+              ),
+            ),
+          IconButton(
+            icon: Icon(themeProvider.themeMode == ThemeMode.dark
+                ? Icons.light_mode
+                : Icons.dark_mode),
+            onPressed: () => themeProvider.toggleTheme(),
+            tooltip: 'Toggle Theme',
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              FirebaseAuth.instance.signOut();
+            },
+            tooltip: 'Logout',
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text('Welcome, ${_currentUser?.email ?? 'Guest'}!', style: Theme.of(context).textTheme.displayLarge),
+                      const SizedBox(height: 20),
+                      Text('Your role: ${_currentUser?.role ?? 'Unknown'}',
+                          style: Theme.of(context).textTheme.bodyMedium),
+                      const SizedBox(height: 30),
+                      if (_currentUser != null)
+                        _buildRoleBasedButtons(context, _currentUser!.role)
+                      else
+                        const Text("No user role found."),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+}
+
+Widget _buildRoleBasedButtons(BuildContext context, String role) {
+  List<Widget> buttons = [];
+
+  if (role == 'Owner') {
+    buttons.add(
+      ElevatedButton(
+        onPressed: () {
+          Navigator.of(context).pushNamed('/add_office_space');
+        },
+        child: const Text('Add a Space'),
+      ),
+    );
+  }
+
+  if (role == 'Merchant') {
+    buttons.add(
+      ElevatedButton(
+        onPressed: () {
+          Navigator.of(context).pushNamed('/add_product');
+        },
+        child: const Text('Add a Product'),
+      ),
+    );
+  }
+  
+  if (role == 'Customer') {
+     buttons.addAll([
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pushNamed('/office_space_list');
+          },
+          child: const Text('Browse Spaces'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pushNamed('/product_list');
+          },
+          child: const Text('Browse Products'),
+        ),
+         ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pushNamed('/my_bookings');
+          },
+          child: const Text('My Bookings'),
+        ),
+     ]);
+  }
+
+  return Wrap(
+    spacing: 10,
+    runSpacing: 10,
+    alignment: WrapAlignment.center,
+    children: buttons,
+  );
 }

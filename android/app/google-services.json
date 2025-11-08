@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "334837912914",
+    "firebase_url": "https://victoryvortex-dcaca-default-rtdb.firebaseio.com",
+    "project_id": "victoryvortex-dcaca",
+    "storage_bucket": "victoryvortex-dcaca.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334837912914:android:4d0565170d2e7953ad168b",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPwo3nh30bxYf-wvSw5UR2R-zMjOqwefU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
