@@ -13,9 +13,11 @@ import 'screens/cart_screen.dart';
 import 'providers/cart_provider.dart';
 import 'models/user_model.dart';
 import 'services/supabase_service.dart';
+import 'services/demo_data_initializer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Config.initialize();
   await Supabase.initialize(
     url: Config.supabaseUrl,
     anonKey: Config.supabaseAnonKey,
@@ -185,9 +187,24 @@ class _HomePageState extends State<HomePage> {
     final client = Supabase.instance.client;
     final user = client.auth.currentUser;
     if (user != null) {
-      final appUser = await _supabaseService.getUser(user.id);
+      final userProfile = await _supabaseService.getUserProfile(user.id);
+      
+      // Check if this is the demo user and initialize demo data
+      if (user.email == 'demo@storeffice.com') {
+        try {
+          await DemoDataInitializer.initializeDemoData();
+          print('Demo data initialized for demo user');
+        } catch (e) {
+          print('Error initializing demo data: $e');
+        }
+      }
+      
       setState(() {
-        _currentUser = appUser;
+        _currentUser = AppUser(
+          id: userProfile.id,
+          email: userProfile.email,
+          role: userProfile.roles.isNotEmpty ? userProfile.roles.first : 'Customer',
+        );
         _isLoading = false;
       });
     } else {

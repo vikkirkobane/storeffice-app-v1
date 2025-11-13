@@ -37,7 +37,7 @@ class CartProvider with ChangeNotifier {
         product.id,
         () => CartItem(
           productId: product.id,
-          name: product.name,
+          name: product.title,
           price: product.price,
           quantity: 1,
         ),

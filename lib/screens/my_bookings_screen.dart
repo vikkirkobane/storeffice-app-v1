@@ -34,7 +34,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     try {
       final bookings = await _supabaseService.getUserBookings(user.id);
       setState(() {
-        _bookings = bookings;
+        _bookings = bookings.map((booking) => booking.toMap()).toList();
         _isLoading = false;
       });
     } catch (e) {

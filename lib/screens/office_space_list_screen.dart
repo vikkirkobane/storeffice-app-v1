@@ -25,7 +25,7 @@ class _OfficeSpaceListScreenState extends State<OfficeSpaceListScreen> {
     try {
       final data = await _supabaseService.getOfficeSpaces();
       setState(() {
-        _officeSpaces = data.map((item) => OfficeSpace.fromMap(item)).toList();
+        _officeSpaces = data;
         _isLoading = false;
       });
     } catch (e) {
@@ -61,7 +61,7 @@ class _OfficeSpaceListScreenState extends State<OfficeSpaceListScreen> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(space.description),
+                            Text(space.description ?? ''),
                             const SizedBox(height: 8),
                             Text(
                               'Capacity: ${space.capacity} people',

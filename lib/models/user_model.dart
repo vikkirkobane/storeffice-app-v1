@@ -1,3 +1,5 @@
+// This file is kept for backward compatibility
+// Use lib/models/user_profile.dart for the complete user model
 class AppUser {
   final String id;
   final String email;

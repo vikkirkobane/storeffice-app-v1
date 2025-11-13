@@ -26,7 +26,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     try {
       final data = await _supabaseService.getProducts();
       setState(() {
-        _products = data.map((item) => Product.fromMap(item)).toList();
+        _products = data;
         _isLoading = false;
       });
     } catch (e) {
@@ -60,14 +60,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     return Card(
                       margin: const EdgeInsets.all(8.0),
                       child: ListTile(
-                        leading: product.imageUrl.isNotEmpty
-                            ? Image.network(product.imageUrl, width: 50, height: 50, fit: BoxFit.cover)
+                        leading: (product.thumbnailImage ?? '').isNotEmpty
+                            ? Image.network(product.thumbnailImage!, width: 50, height: 50, fit: BoxFit.cover)
                             : const Icon(Icons.shopping_bag),
-                        title: Text(product.name, style: Theme.of(context).textTheme.titleLarge),
+                        title: Text(product.title, style: Theme.of(context).textTheme.titleLarge),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(product.description),
+                            Text(product.description ?? ''),
                             const SizedBox(height: 8),
                             Text(
                               '\$${product.price.toStringAsFixed(2)}',
@@ -85,7 +85,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Added ${product.name} to cart!'),
+                                content: Text('Added ${product.title} to cart!'),
                                 duration: const Duration(seconds: 2),
                                 action: SnackBarAction(
                                   label: 'UNDO',
