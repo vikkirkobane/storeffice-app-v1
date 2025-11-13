@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/custom_otp_service.dart';
+import 'services/demo_user_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -466,11 +467,8 @@ class _LoginPageState extends State<LoginPage> {
                     _errorMessage = '';
                   });
                   
-                  // Try to sign in with demo credentials
-                  final response = await Supabase.instance.client.auth.signInWithPassword(
-                    email: 'demo@storeffice.com',
-                    password: 'DemoPassword123!',
-                  );
+                  // Use the improved demo user service
+                  final response = await DemoUserService.ensureDemoUserExists();
                   
                   if (response.user != null) {
                     // Navigate to home screen after successful demo login
@@ -479,27 +477,9 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   }
                 } catch (e) {
-                  // If direct login fails, try to create the demo user first
-                  try {
-                    // Attempt to create the demo user account
-                    await _otpService.createUserAccount('demo@storeffice.com', 'DemoPassword123!');
-                    
-                    // Then sign in
-                    final response = await Supabase.instance.client.auth.signInWithPassword(
-                      email: 'demo@storeffice.com',
-                      password: 'DemoPassword123!',
-                    );
-                    
-                    if (response.user != null) {
-                      if (mounted) {
-                        Navigator.of(context).pushReplacementNamed('/home');
-                      }
-                    }
-                  } catch (setupError) {
-                    setState(() {
-                      _errorMessage = 'Demo account setup issue: $setupError';
-                    });
-                  }
+                  setState(() {
+                    _errorMessage = 'Demo account access error: $e';
+                  });
                 }
               },
               child: const Text('Continue as Demo User'),

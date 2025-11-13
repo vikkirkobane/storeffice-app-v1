@@ -14,6 +14,7 @@ import 'providers/cart_provider.dart';
 import 'models/user_model.dart';
 import 'services/supabase_service.dart';
 import 'services/demo_data_initializer.dart';
+import 'services/demo_user_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

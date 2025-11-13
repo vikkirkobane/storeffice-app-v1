@@ -247,6 +247,30 @@ On the login screen, you can click the **"Continue as Demo User"** button to acc
 
 The demo account is pre-populated with realistic sample data including office spaces, products, and other content to provide an authentic experience of the Storeffice platform.
 
+### Setting Up Demo User in Supabase
+
+To use the demo user functionality, you need to create the demo user in your Supabase project:
+
+1. **Go to your Supabase Dashboard**
+   - Navigate to Authentication → Users
+   - Click "New User"
+   - Enter the credentials:
+     - Email: `demo@storeffice.com`
+     - Password: `DemoPassword123!`
+     - Confirm password: `DemoPassword123!`
+   - Make sure "Email confirm" is checked
+   - Click "Create user"
+
+2. **Run the Demo Setup Script**
+   - Go to SQL Editor in your Supabase Dashboard
+   - Copy and run the contents of `schema/demo_setup.sql` to create the demo user profile and sample data
+
+3. **Alternative: Use the Reset Function**
+   - If you need to reset the demo data, you can call the `reset_demo_data()` function in SQL Editor
+
+### Demo User Initialization
+When the demo user logs in, the app automatically initializes sample data to provide a rich demo experience.
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! Please read our [Contributing Guide](CONTRIBUTING.md) to learn about our development process and how to submit pull requests.
